@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f2">
+  <title>Campus Swap — Textbooks, passed on</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202a27;
+      --muted: #66736d;
+      --paper: #f6f7f2;
+      --surface: #fff;
+      --line: #e2e7df;
+      --green: #176b50;
+      --green-dark: #10533e;
+      --green-pale: #e7f3ec;
+      --gold-pale: #fbf1d9;
+      --gold-ink: #805b12;
+      --red-pale: #fbe9e7;
+      --red-ink: #9b3931;
+      --shadow: 0 10px 28px rgb(30 48 39 / 6%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .topbar {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      background: rgb(255 255 255 / 82%);
+    }
+
+    .topbar-inner, main, .footer-inner {
+      width: min(1100px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 760; letter-spacing: -.03em; }
+    .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; color: white; background: var(--green); }
+    .brand-mark svg { width: 19px; height: 19px; }
+    .top-note { color: var(--muted); font-size: .85rem; }
+
+    main { padding: 44px 0 76px; }
+    .hero { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+    .eyebrow { margin: 0 0 8px; color: var(--green); font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 620px; margin: 0; font-size: clamp(2rem, 4.6vw, 3.35rem); line-height: 1.08; letter-spacing: -.055em; }
+    .hero-copy { max-width: 520px; margin: 13px 0 0; color: var(--muted); font-size: 1.02rem; }
+
+    .button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-weight: 720;
+      text-decoration: none;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #91cbb0; outline-offset: 2px; }
+    .button-primary { background: var(--green); color: white; }
+    .button-primary:hover { background: var(--green-dark); }
+    .button-secondary { color: var(--green-dark); background: white; border-color: var(--line); }
+    .button-secondary:hover { border-color: #a9cbb8; background: #f8fcf9; }
+    .button-small { min-height: 36px; padding-inline: 12px; font-size: .85rem; }
+    .button svg { width: 17px; height: 17px; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat { min-height: 92px; padding: 17px 20px; display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .stat-icon { width: 40px; height: 40px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; color: var(--green); background: var(--green-pale); }
+    .stat-icon svg { width: 20px; height: 20px; }
+    .stat-value { display: block; font-size: 1.35rem; font-weight: 780; line-height: 1.1; letter-spacing: -.03em; }
+    .stat-label { display: block; margin-top: 4px; color: var(--muted); font-size: .82rem; }
+
+    .listings-section { scroll-margin-top: 22px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 0 0 14px; }
+    h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.035em; }
+    .result-count { color: var(--muted); font-size: .87rem; }
+
+    .filters { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(180px, .68fr) auto; align-items: end; gap: 12px; padding: 16px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .field { display: grid; gap: 6px; }
+    .field label, .filter-label { color: #394640; font-size: .82rem; font-weight: 700; }
+    .input-wrap { position: relative; }
+    .input-wrap svg { position: absolute; top: 50%; left: 12px; width: 17px; height: 17px; color: #77847d; transform: translateY(-50%); pointer-events: none; }
+    input, select { width: 100%; min-height: 43px; padding: 9px 12px; border: 1px solid #d9e0d9; border-radius: 9px; color: var(--ink); background: white; }
+    .input-wrap input { padding-left: 38px; }
+    input::placeholder { color: #78847d; }
+    .checkbox-row { min-height: 43px; display: flex; align-items: center; gap: 9px; padding: 0 4px; white-space: nowrap; color: #394640; font-size: .9rem; font-weight: 600; }
+    .checkbox-row input { width: 18px; min-height: 18px; height: 18px; accent-color: var(--green); }
+
+    .listing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .book-card { min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 3px 12px rgb(30 48 39 / 2%); }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .book-title { margin: 0; font-size: 1.08rem; line-height: 1.3; letter-spacing: -.025em; }
+    .course { display: inline-block; margin-top: 6px; color: var(--muted); font-size: .85rem; }
+    .status { flex: 0 0 auto; padding: 5px 9px; border-radius: 999px; font-size: .73rem; font-weight: 760; }
+    .status-available { color: var(--green-dark); background: var(--green-pale); }
+    .status-reserved { color: var(--gold-ink); background: var(--gold-pale); }
+    .status-sold { color: var(--red-ink); background: var(--red-pale); }
+    .card-details { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin: 19px 0; color: #53615a; font-size: .84rem; }
+    .card-details span { display: inline-flex; align-items: center; gap: 6px; }
+    .card-details svg { width: 15px; height: 15px; color: #78867e; }
+    .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid #edf0ec; }
+    .price { font-size: 1.34rem; font-weight: 800; letter-spacing: -.04em; }
+    .posted { display: block; color: var(--muted); font-size: .76rem; font-weight: 450; letter-spacing: 0; }
+    .empty-state { grid-column: 1 / -1; padding: 45px 24px; border: 1px dashed #cbd5cc; border-radius: 14px; text-align: center; background: #fbfcf9; }
+    .empty-state h3 { margin: 0 0 6px; font-size: 1.08rem; }
+    .empty-state p { margin: 0; color: var(--muted); }
+
+    .form-panel { display: none; margin-top: 24px; padding: 22px; border: 1px solid #c8dfd1; border-radius: 14px; background: #f0f7f2; }
+    .form-panel.is-open { display: block; }
+    .form-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .form-heading h2 { margin-bottom: 4px; }
+    .form-heading p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .close-form { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #d1e2d6; border-radius: 9px; color: var(--ink); background: white; }
+    .close-form svg { width: 18px; height: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1.4fr 1fr .65fr 1fr; align-items: end; gap: 12px; }
+    .form-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .form-note { color: var(--muted); font-size: .82rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .live-message { min-height: 1.3em; margin: 8px 0 0; color: var(--green-dark); font-size: .88rem; }
+
+    footer { padding: 20px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 12px; }
+
+    @media (max-width: 760px) {
+      .topbar-inner, main, .footer-inner { width: min(100% - 32px, 620px); }
+      main { padding-top: 32px; }
+      .hero { align-items: flex-start; flex-direction: column; gap: 18px; }
+      .hero .button { width: 100%; }
+      .stats { gap: 9px; }
+      .stat { min-height: 82px; gap: 9px; padding: 12px; }
+      .stat-icon { width: 34px; height: 34px; }
+      .stat-label { font-size: .74rem; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .checkbox-row { grid-column: 1 / -1; }
+      .listing-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 430px) {
+      .topbar { height: 60px; }
+      .top-note { font-size: .75rem; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:last-child { grid-column: 1 / -1; }
+      .filters { grid-template-columns: 1fr; }
+      .checkbox-row { grid-column: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#" aria-label="Campus Swap home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5Z"/><path d="M4 12l8 3.5 8-3.5M4 16.5 12 20l8-3.5"/></svg>
+        </span>
+        Campus Swap
+      </a>
+      <span class="top-note">Good books deserve another semester.</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">The campus book exchange</p>
+        <h1 id="page-title">Your next textbook is already here.</h1>
+        <p class="hero-copy">Find this semester’s books from students on campus. Clear prices, honest condition, and no guessing if it’s still available.</p>
+      </div>
+      <button class="button button-primary" id="open-form" type="button" aria-expanded="false" aria-controls="form-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Post a textbook
+      </button>
+    </section>
+
+    <section class="stats" aria-label="Marketplace summary">
+      <div class="stat">
+        <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 1 4 16.5v-11Z"/><path d="M4 16a2.5 2.5 0 0 1 2.5-2.5H20M8 7h8"/></svg></span>
+        <span><strong class="stat-value" id="available-count">0</strong><span class="stat-label">Available now</span></span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4M8 11h6M11 8v6"/></svg></span>
+        <span><strong class="stat-value" id="course-count">0</strong><span class="stat-label">Courses covered</span></span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M17 7.5c0-1.4-1.8-2.5-4-2.5S9 6.1 9 7.5 10.8 10 13 10s4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5"/></svg></span>
+        <span><strong class="stat-value" id="average-price">$0</strong><span class="stat-label">Average asking price</span></span>
+      </div>
+    </section>
+
+    <section class="listings-section" id="listings" aria-labelledby="listings-title">
+      <div class="section-heading">
+        <h2 id="listings-title">Find your book</h2>
+        <span class="result-count" id="result-count" aria-live="polite"></span>
+      </div>
+
+      <div class="filters" role="search" aria-label="Filter textbook listings">
+        <div class="field">
+          <label for="search-input">Search title or course</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+            <input id="search-input" type="search" placeholder="Try “biology” or “BIO 201”" autocomplete="off">
+          </div>
+        </div>
+        <div class="field">
+          <label for="course-filter">Course</label>
+          <select id="course-filter"><option value="">All courses</option></select>
+        </div>
+        <label class="checkbox-row" for="hide-sold">
+          <input id="hide-sold" type="checkbox" checked>
+          Hide sold books
+        </label>
+      </div>
+
+      <div class="listing-grid" id="listing-grid" aria-live="polite"></div>
+      <p class="live-message" id="live-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="form-panel" id="form-panel" aria-labelledby="form-title">
+      <div class="form-heading">
+        <div>
+          <h2 id="form-title">List a textbook</h2>
+          <p>Give another student a good deal on a book you’re done with.</p>
+        </div>
+        <button class="close-form" id="close-form" type="button" aria-label="Close listing form">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <form id="listing-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="book-title">Book title</label>
+            <input id="book-title" name="title" type="text" maxlength="100" required placeholder="e.g. Principles of Biology">
+          </div>
+          <div class="field">
+            <label for="book-course">Course</label>
+            <input id="book-course" name="course" type="text" maxlength="40" required placeholder="e.g. BIO 201">
+          </div>
+          <div class="field">
+            <label for="book-price">Price ($)</label>
+            <input id="book-price" name="price" type="number" min="0" max="9999" step="0.01" required placeholder="25">
+          </div>
+          <div class="field">
+            <label for="book-condition">Condition</label>
+            <select id="book-condition" name="condition" required>
+              <option value="Like new">Like new</option>
+              <option value="Very good">Very good</option>
+              <option value="Good" selected>Good</option>
+              <option value="Acceptable">Acceptable</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="button button-primary" type="submit">Publish listing</button>
+          <span class="form-note">Your listing appears as available.</span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Campus Swap · Pass it on, pay less.</span>
+      <span>Listings are stored in this browser only.</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const storageKey = "campus-swap-listings-v1";
+      const sampleListings = [
+        { id: "sample-1", title: "Campbell Biology", course: "BIO 201", price: 48, condition: "Good", status: "available", postedAt: daysAgo(0) },
+        { id: "sample-2", title: "Calculus: Early Transcendentals", course: "MATH 151", price: 62, condition: "Very good", status: "available", postedAt: daysAgo(1) },
+        { id: "sample-3", title: "Introduction to Psychology", course: "PSYC 101", price: 35, condition: "Like new", status: "reserved", postedAt: daysAgo(2) },
+        { id: "sample-4", title: "The Norton Anthology of English Literature", course: "ENG 210", price: 28, condition: "Acceptable", status: "available", postedAt: daysAgo(3) },
+        { id: "sample-5", title: "Organic Chemistry", course: "CHEM 221", price: 55, condition: "Good", status: "sold", postedAt: daysAgo(5) },
+        { id: "sample-6", title: "Principles of Microeconomics", course: "ECON 102", price: 30, condition: "Very good", status: "available", postedAt: daysAgo(7) }
+      ];
+
+      function daysAgo(days) {
+        const date = new Date();
+        date.setDate(date.getDate() - days);
+        return date.toISOString();
+      }
+
+      const grid = document.getElementById("listing-grid");
+      const searchInput = document.getElementById("search-input");
+      const courseFilter = document.getElementById("course-filter");
+      const hideSold = document.getElementById("hide-sold");
+      const resultCount = document.getElementById("result-count");
+      const liveMessage = document.getElementById("live-message");
+      const formPanel = document.getElementById("form-panel");
+      const form = document.getElementById("listing-form");
+      let listings = loadListings();
+
+      function loadListings() {
+        try {
+          const stored = localStorage.getItem(storageKey);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.every(isValidListing)) return parsed;
+          }
+        } catch (error) {
+          console.warn("Could not load saved Campus Swap listings.", error);
+        }
+        return sampleListings;
+      }
+
+      function isValidListing(item) {
+        return item && typeof item.id === "string" && typeof item.title === "string" &&
+          typeof item.course === "string" && Number.isFinite(item.price) &&
+          typeof item.condition === "string" && ["available", "reserved", "sold"].includes(item.status) &&
+          typeof item.postedAt === "string";
+      }
+
+      function saveListings() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(listings));
+          return true;
+        } catch (error) {
+          console.warn("Could not save Campus Swap listings in this browser.", error);
+          return false;
+        }
+      }
+
+      function formatPrice(price) {
+        return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(price);
+      }
+
+      function formatPosted(dateString) {
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return "Date unavailable";
+        const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(date).setHours(0, 0, 0, 0)) / 86400000);
+        if (days <= 0) return "Posted today";
+        if (days === 1) return "Posted yesterday";
+        if (days < 7) return `Posted ${days} days ago`;
+        return `Posted ${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date)}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[character]);
+      }
+
+      function renderCourses() {
+        const selected = courseFilter.value;
+        const courses = [...new Set(listings.map((listing) => listing.course))].sort((a, b) => a.localeCompare(b));
+        courseFilter.innerHTML = '<option value="">All courses</option>' +
+          courses.map((course) => `<option value="${escapeHtml(course)}">${escapeHtml(course)}</option>`).join("");
+        if (courses.includes(selected)) courseFilter.value = selected;
+      }
+
+      function updateStats() {
+        const available = listings.filter((listing) => listing.status === "available");
+        const courses = new Set(listings.map((listing) => listing.course));
+        const average = available.length
+          ? available.reduce((total, listing) => total + listing.price, 0) / available.length
+          : 0;
+        document.getElementById("available-count").textContent = String(available.length);
+        document.getElementById("course-count").textContent = String(courses.size);
+        document.getElementById("average-price").textContent = formatPrice(average);
+      }
+
+      function renderListings() {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        const course = courseFilter.value;
+        const visible = listings
+          .filter((listing) => !hideSold.checked || listing.status !== "sold")
+          .filter((listing) => !course || listing.course === course)
+          .filter((listing) => !query || `${listing.title} ${listing.course}`.toLocaleLowerCase().includes(query))
+          .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt));
+
+        resultCount.textContent = `${visible.length} ${visible.length === 1 ? "book" : "books"}`;
+        if (visible.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><h3>No books found</h3><p>Try a different search or course, or post the first listing.</p></div>';
+          return;
+        }
+
+        grid.innerHTML = visible.map((listing) => {
+          const statusLabel = listing.status.charAt(0).toUpperCase() + listing.status.slice(1);
+          const action = listing.owned && listing.status !== "sold"
+            ? `<button class="button button-secondary button-small" type="button" data-mark-sold="${escapeHtml(listing.id)}">Mark as sold</button>`
+            : "";
+          return `<article class="book-card">
+            <div class="card-top">
+              <div><h3 class="book-title">${escapeHtml(listing.title)}</h3><span class="course">${escapeHtml(listing.course)}</span></div>
+              <span class="status status-${escapeHtml(listing.status)}">${statusLabel}</span>
+            </div>
+            <div class="card-details">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 4.5 6v5.3c0 4.5 3.2 7.8 7.5 9.7 4.3-1.9 7.5-5.2 7.5-9.7V6L12 3Z"/><path d="m9 12 2 2 4-4"/></svg>${escapeHtml(listing.condition)}</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${escapeHtml(formatPosted(listing.postedAt))}</span>
+            </div>
+            <div class="card-bottom">
+              <strong class="price">${formatPrice(listing.price)}<span class="posted">asking price</span></strong>
+              ${action}
+            </div>
+          </article>`;
+        }).join("");
+      }
+
+      function render() {
+        renderCourses();
+        updateStats();
+        renderListings();
+      }
+
+      function setFormOpen(open) {
+        formPanel.classList.toggle("is-open", open);
+        document.getElementById("open-form").setAttribute("aria-expanded", String(open));
+        if (open) {
+          formPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          document.getElementById("book-title").focus({ preventScroll: true });
+        } else {
+          document.getElementById("open-form").focus();
+        }
+      }
+
+      document.getElementById("open-form").addEventListener("click", () => setFormOpen(true));
+      document.getElementById("close-form").addEventListener("click", () => setFormOpen(false));
+      searchInput.addEventListener("input", renderListings);
+      courseFilter.addEventListener("change", renderListings);
+      hideSold.addEventListener("change", renderListings);
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        const data = new FormData(form);
+        const listing = {
+          id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          title: String(data.get("title")).trim(),
+          course: String(data.get("course")).trim(),
+          price: Number(data.get("price")),
+          condition: String(data.get("condition")),
+          status: "available",
+          postedAt: new Date().toISOString(),
+          owned: true
+        };
+        if (!listing.title || !listing.course || !Number.isFinite(listing.price) || listing.price < 0) return;
+        listings.unshift(listing);
+        const saved = saveListings();
+        form.reset();
+        hideSold.checked = true;
+        searchInput.value = "";
+        courseFilter.value = "";
+        render();
+        setFormOpen(false);
+        liveMessage.textContent = saved
+          ? "Your book listing is live and saved in this browser."
+          : "Your book is listed for this visit, but this browser could not save it for later.";
+        document.getElementById("listings").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      grid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-mark-sold]");
+        if (!button) return;
+        const listing = listings.find((item) => item.id === button.dataset.markSold && item.owned);
+        if (!listing) return;
+        listing.status = "sold";
+        const saved = saveListings();
+        render();
+        liveMessage.textContent = saved
+          ? `"${listing.title}" has been marked as sold.`
+          : `"${listing.title}" is marked sold for this visit, but this browser could not save the change.`;
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
